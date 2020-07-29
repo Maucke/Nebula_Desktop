@@ -258,7 +258,7 @@ void Error_Handler(void);
 #define MODE_MUSIC     			0x03
 #define MODE_NORMAL   		  0x04
 #define MODE_GAME  					0x05
-//#define MODE_SLEEP		  		0x06
+#define MODE_SHOW		  		0x06
 #define MODE_TIME		  		  0x07
 #define MODE_BILI		  		  0x08
 #define MODE_WEATH		  		  0x09
@@ -267,8 +267,8 @@ void Error_Handler(void);
 #define MODE_DATE_1    	  		0x0C
 #define MODE_MENU    	  		0x0D
 
-#define Nebula False
-#define Dounsn True
+#define Nebula True
+#define Dounsn False
 extern u16 Selectitem;
 extern u16 MenuLevel;
 extern u16 DATA_THEME;
@@ -298,6 +298,8 @@ extern u16 MenuCount;
 #define OLED_WR_GPIO_Port GPIOB
 #define OLED_RD_Pin GPIO_PIN_1
 #define OLED_RD_GPIO_Port GPIOB
+#define OLED_PW_Pin GPIO_PIN_12
+#define OLED_PW_GPIO_Port GPIOB
 #define OLED_D6_Pin GPIO_PIN_6
 #define OLED_D6_GPIO_Port GPIOC
 #define OLED_D7_Pin GPIO_PIN_7

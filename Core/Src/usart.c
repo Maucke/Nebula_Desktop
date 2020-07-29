@@ -678,6 +678,19 @@ void AnalysisCommand(uint8_t *Buf)
 							printf("Current logo 5\r\n");
 						SaveFlag = True;
 					}break;
+				case Command_GAMETYPE:
+					if(Device_Cmd.commandgametype != MAKEWORD(Buf[6],Buf[5]))
+					{
+						Device_Cmd.commandgametype = MAKEWORD(Buf[6],Buf[5]);
+						if(Device_Cmd.commandgametype<8)
+							printf("Game mode %d\r\n",Device_Cmd.commandgametype);
+						else
+						{
+							Device_Cmd.commandgametype=0;
+							printf("Game mode 0\r\n");
+						}
+						SaveFlag = True;
+					}break;
 				case Command_DEVICENAME:
 					memset(&Device_Name,0,sizeof(Device_Name));
 				
@@ -792,6 +805,10 @@ void Tranfcmd(void)
 	
 	for(i=0;i<20;i++)
 		Flash_SaveCMD[48+i] = Device_Name[i];
+		
+	Flash_SaveCMD[70] = Device_Cmd.commandgametype>>8;
+	Flash_SaveCMD[71] = Device_Cmd.commandgametype&0xff;
+	
 	STMFLASH_Write(FLASH_SAVE_ADDR,(u16*)Flash_SaveCMD,SAVESIZE);
 //	STMFLASH_Write(FLASH_NAME_ADDR,(u16*)Device_Name,20);
 }
@@ -806,6 +823,7 @@ void Recvcmd(void)
 	STMFLASH_Read(FLASH_SAVE_ADDR,(u16*)Flash_SaveCMD,SAVESIZE);
 	if(Flash_SaveCMD[31]!=VERIF)
 	{
+		Device_Cmd.commandtoptheme = 5;
 		Flash_SaveCMD[31]=VERIF;
 		Tranfcmd();
 //		STMFLASH_Write(FLASH_NAME_ADDR,(u16*)Device_Name,20);
@@ -834,6 +852,7 @@ void Recvcmd(void)
 	DATA_THEME = Flash_SaveCMD[45];
 	for(i=0;i<20;i++)
 		Device_Name[i] = Flash_SaveCMD[48+i];
+	Device_Cmd.commandgametype = MAKEWORD(Flash_SaveCMD[71],Flash_SaveCMD[70]);
 }
 
 void delay_ms(unsigned int Ms)

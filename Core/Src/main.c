@@ -125,12 +125,15 @@ void Mode_In(void)
 		case MODE_DATE:TIME_Mode_In();break;
 		case MODE_DATE_1:TIME_1_Mode_In();break;
 		case MODE_NORMAL:NORMAL_Mode_In();break;
+		case MODE_GAME:NORMAL_Mode_In();break;
 		case MODE_MUSIC:MUSIC_Mode_In();break;
+#if Dounsn == 1
 		case MODE_BILI:BILI_Mode_In();break;
 		case MODE_WEATH:WEATH_Mode_In();break;
 		case MODE_WEATH_1:WEATH_1_Mode_In();break;
 		case MODE_WEATH_2:WEATH_2_Mode_In();break;
 		case MODE_MENU:MENU_Mode_In();break;
+#endif
 	}
 }
 
@@ -143,12 +146,15 @@ void Mode_Out(void)
 		case MODE_DATE:TIME_Mode_Out();break;
 		case MODE_DATE_1:TIME_1_Mode_Out();break;
 		case MODE_NORMAL:NORMAL_Mode_Out();break;
+		case MODE_GAME:NORMAL_Mode_Out();break;
 		case MODE_MUSIC:MUSIC_Mode_Out();break;
+#if Dounsn == 1
 		case MODE_BILI:BILI_Mode_Out();break;
 		case MODE_WEATH:WEATH_Mode_Out();break;
 		case MODE_WEATH_1:WEATH_1_Mode_Out();break;
 		case MODE_WEATH_2:WEATH_2_Mode_Out();break;
 		case MODE_MENU:MENU_Mode_Out();break;
+#endif
 	}
 	DampMPos(0.1);
 }
@@ -161,12 +167,15 @@ void Mode_Run(void)
 		case MODE_DATE:TIME_Mode_Run();break;
 		case MODE_DATE_1:TIME_Mode_Run();break;
 		case MODE_NORMAL:NORMAL_Mode_Run();break;
+		case MODE_GAME:NORMAL_Mode_Run();break;
 //		case MODE_MUSIC:MUSIC_Mode_Run();break;
+#if Dounsn == 1
 		case MODE_BILI:BILI_Mode_Run();break;
 		case MODE_WEATH:WEATH_Mode_Run();break;
 		case MODE_WEATH_1:WEATH_1_Mode_Run();break;
 		case MODE_WEATH_2:WEATH_2_Mode_Run();break;
 		case MODE_MENU:MENU_Mode_Run();break;
+#endif
 	}
 }
 
@@ -178,12 +187,15 @@ void Mode_Display(void)
 		case MODE_DATE:TIME_Display();break;
 		case MODE_DATE_1:TIME_1_Display();break;
 		case MODE_NORMAL:NORMAL_Display();break;
+		case MODE_GAME:NORMAL_Display();break;
 		case MODE_MUSIC:MUSIC_Display();break;
+#if Dounsn == 1
 		case MODE_BILI:BILI_Display();break;
 		case MODE_WEATH:WEATH_Display();break;
 		case MODE_WEATH_1:WEATH_1_Display();break;
 		case MODE_WEATH_2:WEATH_2_Display();break;
 		case MODE_MENU:MENU_Display();break;
+#endif
 		default:Current_Mode = Display_Mode;break;
 	}
 }
@@ -266,8 +278,10 @@ int main(void)
   /* USER CODE BEGIN 2 */
 	__HAL_UART_ENABLE_IT(&huart1, UART_IT_IDLE);
   HAL_UART_Receive_DMA(&huart1,Uart_Recv1_Buf,Uart_Max_Length);
+#if Dounsn == 1
 	__HAL_UART_ENABLE_IT(&huart3, UART_IT_IDLE);
   HAL_UART_Receive_DMA(&huart3,Uart_Recv3_Buf,Uart_Max_Length);
+#endif
 	HAL_TIM_Base_Start_IT(&htim5);
 	HAL_TIM_Base_Start_IT(&htim6);
 	HAL_TIM_Base_Start_IT(&htim7);
@@ -276,7 +290,9 @@ int main(void)
   oled.Device_Init();
 	UsartCommand(&huart1,0xA002,3);//ªÒ»°√¸¡Ó
 	InitData();
+#if Dounsn == 1
 	InitWifi();
+#endif
 	motion.OLED_AllMotion_Init();
 	Recvcmd();
 	
@@ -311,7 +327,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-		if(Current_Mode == MODE_OFFLINE||Current_Mode == MODE_GAME)
+		if(Current_Mode == MODE_OFFLINE||Current_Mode == MODE_SHOW)
 			OFFLINE_Mode();
 		else
 			Display_Run();
@@ -457,7 +473,21 @@ void OFFLINE_Mode_In(void)
 	int i;
 	oled.Display_SetDim(0);
 	oled.Clear_Screen();
+	
+#if Dounsn == 1
 	oled.Display_bmp(Logo_nebula);
+#else
+	switch(Device_Cmd.commandlogotheme)
+	{
+		case 0:oled.Display_bmp(Logo_asus);break;
+		case 1:oled.Display_bmp(Logo_msi);break;
+		case 2:oled.Display_bmp(Logo_amd);break;
+		case 3:oled.Display_bmp(Logo_radeon);break;
+		case 4:oled.Display_bmp(Logo_nvidia);break;
+		case 5:oled.Display_bmp(Logo_custorm);break;
+		default:oled.Display_bmp(Logo_msi);break;
+	}
+#endif
 	oled.Refrash_Screen();
 	for(i=0;i<65;i++)
 	{
@@ -516,10 +546,12 @@ void OFFLINE_Mode(void)
 		UsartPrint(&huart1,0xC001," Active\n");
 		
 		
+#if Dounsn == 1
 		UsartPrint(&huart3,ESP_Set_Addr,set.addr);
 		HAL_Delay(10);
 		UsartPrintuid(&huart1,ESP_Set_Uid,set.uid);
 		UsartPrintuid(&huart3,ESP_Set_Uid,set.uid);
+#endif
 	}
 	if(set.autotimeset)
 	{
@@ -893,8 +925,10 @@ void NORMAL_Mode_Run(void)
 				UnitDisType=UT_RPM;
 				pit[CRTVADS].target = pit[CRTVANE].target/50/80*118;
 				
+				if(pit[CRTVADS].target>=117)
+					pit[CRTVADS].target=117;
 			}
-			else
+			else if(Current_Mode != MODE_GAME)
 			{
 				DataDisType++;return;
 //				sprintf(DataDis,"----");
@@ -913,13 +947,13 @@ void NORMAL_Mode_Run(void)
 				sprintf(DataDisf,"%01d",Device_Msg.cputemp%10);
 				UnitDisType=UT_DEG;
 				
-				if(pit[CRTVANE].target<=80)
-					pit[CRTVADS].target = pit[CRTVANE].target/80*118;
-				else
-					pit[CRTVADS].target = 117;
+				pit[CRTVADS].target = pit[CRTVANE].target/80*118;
+				
+				if(pit[CRTVADS].target>=117)
+					pit[CRTVADS].target=117;
 				
 			}
-			else
+			else if(Current_Mode != MODE_GAME)
 			{
 				DataDisType++;return;
 			}
@@ -936,8 +970,10 @@ void NORMAL_Mode_Run(void)
 				UnitDisType=UT_MHZ;
 				pit[CRTVADS].target = pit[CRTVANE].target/50/80*118;
 				
+				if(pit[CRTVADS].target>=117)
+					pit[CRTVADS].target=117;
 			}
-			else
+			else if(Current_Mode != MODE_GAME)
 			{
 				DataDisType++;return;
 //				sprintf(DataDis,"----");
@@ -955,10 +991,10 @@ void NORMAL_Mode_Run(void)
 				sprintf(DataDis,"%02d",(u16)pit[CRTVANE].target);
 				sprintf(DataDisf,"%01d",Device_Msg.cpuload%10);
 				UnitDisType=UT_PREC;
-				if(pit[CRTVANE].target<=80)
-					pit[CRTVADS].target = pit[CRTVANE].target/80*118;
-				else
-					pit[CRTVADS].target = 117;
+				pit[CRTVADS].target = pit[CRTVANE].target/80*118;
+				
+				if(pit[CRTVADS].target>=117)
+					pit[CRTVADS].target=117;
 				
 			}break;
 		case 7:
@@ -972,9 +1008,11 @@ void NORMAL_Mode_Run(void)
 				sprintf(DataDis,"%04d",(u16)pit[CRTVANE].target);
 				UnitDisType=UT_RPM;
 				pit[CRTVADS].target = pit[CRTVANE].target/50/80*118;
+				if(pit[CRTVADS].target>=117)
+					pit[CRTVADS].target=117;
 				
 			}
-			else
+			else if(Current_Mode != MODE_GAME)
 			{
 				DataDisType++;return;
 //				sprintf(DataDis,"----");
@@ -994,8 +1032,10 @@ void NORMAL_Mode_Run(void)
 				UnitDisType=UT_DEG;
 				pit[CRTVADS].target = pit[CRTVANE].target/80*118;
 				
+				if(pit[CRTVADS].target>=117)
+					pit[CRTVADS].target=117;
 			}
-			else
+			else if(Current_Mode != MODE_GAME)
 			{
 				DataDisType++;return;
 			}
@@ -1012,8 +1052,10 @@ void NORMAL_Mode_Run(void)
 				UnitDisType=UT_MHZ;
 				pit[CRTVADS].target = pit[CRTVANE].target/50/80*118;
 				
+				if(pit[CRTVADS].target>=117)
+					pit[CRTVADS].target=117;
 			}
-			else
+			else if(Current_Mode != MODE_GAME)
 			{
 				DataDisType++;return;
 //				sprintf(DataDis,"----");
@@ -1031,10 +1073,11 @@ void NORMAL_Mode_Run(void)
 				sprintf(DataDis,"%02d",(u16)pit[CRTVANE].target);
 				sprintf(DataDisf,"%01d",Device_Msg.gpuload%10);
 				UnitDisType=UT_PREC;
-				if(pit[CRTVANE].target<=80)
-					pit[CRTVADS].target = pit[CRTVANE].target/80*118;
-				else
-					pit[CRTVADS].target = 117;
+				
+				pit[CRTVADS].target = pit[CRTVANE].target/80*118;
+				
+				if(pit[CRTVADS].target>=117)
+					pit[CRTVADS].target=117;
 				
 			}break;
 		case 8:
@@ -1047,10 +1090,10 @@ void NORMAL_Mode_Run(void)
 				sprintf(DataDis,"%02d",(u16)pit[CRTVANE].target);
 				sprintf(DataDisf,"%01d",Device_Msg.ramload%10);
 				UnitDisType=UT_PREC;
-				if(pit[CRTVANE].target<=80)
-					pit[CRTVADS].target = pit[CRTVANE].target/80*118;
-				else
-					pit[CRTVADS].target = 117;
+				pit[CRTVADS].target = pit[CRTVANE].target/80*118;
+				
+				if(pit[CRTVADS].target>=117)
+					pit[CRTVADS].target=117;
 				
 			}break;
 	}
@@ -1081,9 +1124,13 @@ void NORMAL_Mode_Out(void)
 void NORMAL_Display(void)
 {
 	if(Device_Cmd.commandtoptheme<=6)
+	{
 		oled.Display_bmp(pit[POSNTOP].current,pit[POSNRCT].current-25,128,25,Corn_Top[Device_Cmd.commandtoptheme]);
+	}
 	else
+	{
 		oled.Display_bmp(pit[POSNTOP].current,pit[POSNRCT].current-25,128,25,Corn_Top[5]);
+	}
 		
 	oled.Display_bbmp(0,pit[POSNRCT].current,128,73,BMP_DataBackGround);
 	oled.Display_bbmp(89,pit[POSNRCT].current+69,35,5,Corn_BarUnit[UnitDisType],color_half);
@@ -1761,15 +1808,23 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	}
 	if(htim->Instance == htim7.Instance)
 	{
-		if(TimeRun++>40)
+		if(Current_Mode == MODE_GAME)
 		{
+			DataDisType = Device_Cmd.commandgametype;
+			pit[DAMPTYP].current = 30;
 			TimeRun = 0;
-			if(Current_Mode == MODE_NORMAL)
+		}
+		else if(Current_Mode == MODE_NORMAL)
+		{
+			if(TimeRun++>40)
 			{
-				DataDisType++;
-				pit[DAMPTYP].current = 30;
-				if(DataDisType>=8)
-					DataDisType=0;
+				TimeRun = 0;
+				{
+					DataDisType++;
+					pit[DAMPTYP].current = 30;
+					if(DataDisType>=8)
+						DataDisType=0;
+				}
 			}
 		}
 		switch(Device_Cmd.commandrgbmode)
@@ -1781,6 +1836,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		}
 		TimeCount++;
 		
+#if Dounsn == 1
 		if(set.autoswdis&&Display_Mode!=MODE_MENU)
 		{
 			if(CptOnline != False&&Device_Cmd.commandmode != 1)
@@ -1803,6 +1859,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 				MenuCount = 0;
 			}
 		}
+#endif
 		if(OfflineCount < 1)
 			OfflineCount++;
 		else if(OfflineCount == 2)
@@ -1814,6 +1871,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		{
 			InitData();
 			CptOnline = False;
+			Display_Mode = MODE_OFFLINE;
 			OfflineCount++;
 		}
 		else if(OfflineCount <10)
@@ -1821,6 +1879,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 			OfflineCount++;
 		}
 		
+#if Dounsn == 1
 		if(WiFiOfflineCount == 28)
 		{
 //			InitWifi();
@@ -1831,7 +1890,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		{
 			WiFiOfflineCount++;
 		}
-		
+#endif
 		if(Uart_Overflow1_Flag)
 		{
 			Uart_Overflow1_Flag = False;

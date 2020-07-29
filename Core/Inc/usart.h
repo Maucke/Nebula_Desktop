@@ -115,6 +115,7 @@ extern CLOCK_MSG Clock_Msg;
 
 #define Command_TOPTHEME 	0x800A
 #define Command_LOGOTHEME 0x800B
+#define Command_GAMETYPE 0x800C
 #define Command_DEVICENAME 0x400A
 
 #define FLASH_SAVE_ADDR  0X0807f000 	//设置FLASH 保存地址(必须为偶数，且其值要大于本代码所占用FLASH的大小+0X08000000)
@@ -184,6 +185,7 @@ typedef struct
 	u16 commandrgbbrightness;
 	u16 commandtoptheme;
 	u16 commandlogotheme;
+	u16 commandgametype;
 }DEVICE_CMD;
 
 
