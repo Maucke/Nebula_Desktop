@@ -94,14 +94,17 @@ void OLED_FFT::Display_Style2(void)
 		{
 			fall_pot[i] ++;
 		}
-		oled.Draw_Line(3*i,flow_pot[i],3*i,95);
-		oled.Draw_Line(3*i+1,flow_pot[i],3*i+1,95);
+		oled.Draw_Line(3*i,flow_pot[i]+1,3*i,95+1);
+		oled.Draw_Line(3*i+1,flow_pot[i]+1,3*i+1,95+1);
+		
+		oled.Draw_Line(3*i,fall_pot[i]+1+1,3*i,fall_pot[i]+1+1,color_half);
+		oled.Draw_Line(3*i+1,fall_pot[i]+1+1,3*i+1,fall_pot[i]+1+1,color_half);
+		
 		oled.Draw_Line(3*i,(96-flow_pot[i])/3+95,3*i,95,color_half);
 		oled.Draw_Line(3*i+1,(96-flow_pot[i])/3+95,3*i+1,95,color_half);
 		
-		oled.Draw_Line(3*i,fall_pot[i]+1,3*i,fall_pot[i]+1,color_half);
-		oled.Draw_Line(3*i+1,fall_pot[i]+1,3*i+1,fall_pot[i]+1,color_half);
 	}
+	oled.Draw_Line(0,95,128,95,color_min);
 }
 
 
@@ -156,14 +159,14 @@ void OLED_FFT::Display_Style3(void)
 			
 		
 		
-		oled.Draw_Line(4*i+0,fall_pot[i],4*i+0,fall_pot[i]+1,color_half);
-		oled.Draw_Line(4*i+1,fall_pot[i],4*i+1,fall_pot[i]+1,color_half);
-		oled.Draw_Line(4*i+2,fall_pot[i],4*i+2,fall_pot[i]+1,color_half);
+		oled.Draw_Line(4*i+0,fall_pot[i],4*i+0,fall_pot[i],color_half);
+		oled.Draw_Line(4*i+1,fall_pot[i],4*i+1,fall_pot[i],color_half);
+		oled.Draw_Line(4*i+2,fall_pot[i],4*i+2,fall_pot[i],color_half);
 		
 		oled.Draw_Line(4*i+0,flow_pot[i],4*i+0,TrumHeight-1);
 		oled.Draw_Line(4*i+1,flow_pot[i],4*i+1,TrumHeight-1);
 		oled.Draw_Line(4*i+2,flow_pot[i],4*i+2,TrumHeight-1);	
-		for(j=TrumHeight-1;j>=flow_pot[i];j-=2)
+		for(j=TrumHeight;j>=flow_pot[i];j-=2)
 			oled.Draw_Line(4*i+0,j,4*i+2,j,0);
 	}
 }
