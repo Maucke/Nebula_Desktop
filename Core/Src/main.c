@@ -1907,7 +1907,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 				Flag_Sleep = True;
 			SleepCount = 0;
 		}
-		if(SystemActive && NMatchcount==0)
+		if(SystemActive && NMatchcount<3)
 		{
 			if(SaveFlag)
 			{
