@@ -683,11 +683,11 @@ void AnalysisCommand(uint8_t *Buf)
 					{
 						Device_Cmd.commandgametype = MAKEWORD(Buf[6],Buf[5]);
 						if(Device_Cmd.commandgametype<8)
-							printf("Game mode %d\r\n",Device_Cmd.commandgametype);
+							printf("Mode %d\r\n",Device_Cmd.commandgametype);
 						else
 						{
-							Device_Cmd.commandgametype=0;
-							printf("Game mode 0\r\n");
+							Device_Cmd.commandgametype=0xF;
+							printf("Mode Auto\r\n");
 						}
 						SaveFlag = True;
 					}break;

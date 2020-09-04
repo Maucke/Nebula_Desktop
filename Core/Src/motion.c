@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 PIT pit[PITITEM];
-u8 NMatchcount = 0;
+//u8 NMatchcount = 0;
 int absl(int num)
 {
 	if(num>=0)
@@ -13,7 +13,7 @@ int absl(int num)
 
 void DampAutoPos(void)
 {
-	int i,count = 0;
+	int i;
 	float step;
 	for(i=0;i<PITITEM;i++)
 	{
@@ -38,26 +38,26 @@ void DampAutoPos(void)
 			}
 		}
 	}
-	for(i=0;i<PITITEM;i++)
-	{
-		if(pit[i].channel == 0)
-		{
-			if(!pit[i].match)
-			{
-				count++;
-//				printf("i=%d,Traget=%f,Current=%f\r\n",i,pit[i].target,pit[i].current);
-			}
-			if(count>3)
-			 break;
-//			printf("Match\r\n");
-		}
-	}
-	NMatchcount = count;
+//	for(i=0;i<PITITEM;i++)
+//	{
+//		if(pit[i].channel == 0)
+//		{
+//			if(!pit[i].match)
+//			{
+//				count++;
+////				printf("i=%d,Traget=%f,Current=%f\r\n",i,pit[i].target,pit[i].current);
+//			}
+//			if(count>3)
+//			 break;
+////			printf("Match\r\n");
+//		}
+//	}
+//	NMatchcount = count;
 }
 
 void DampMPos(float step)
 {
-	int i,count = 0;
+	int i;
 	for(i=0;i<PITITEM;i++)
 	{
 		if(pit[i].channel == 0)
@@ -79,20 +79,20 @@ void DampMPos(float step)
 			}
 		}
 	}
-	for(i=0;i<PITITEM;i++)
-	{
-		if(pit[i].channel == 0)
-		{
-			if(!pit[i].match)
-			{
-				count++;
-			}
-			if(count>3)
-			 break;
-//			printf("Match\r\n");
-		}
-	}
-	NMatchcount = count;
+//	for(i=0;i<PITITEM;i++)
+//	{
+//		if(pit[i].channel == 0)
+//		{
+//			if(!pit[i].match)
+//			{
+//				count++;
+//			}
+//			if(count>3)
+//			 break;
+////			printf("Match\r\n");
+//		}
+//	}
+//	NMatchcount = count;
 }
 
 void DampCustormPos(u16 index,float step)

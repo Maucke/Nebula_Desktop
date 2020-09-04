@@ -12,7 +12,7 @@ typedef struct
 	u8 channel;
 } PIT;
 
-extern u8 NMatchcount;
+//extern u8 NMatchcount;
 extern PIT pit[PITITEM];
 
 void DampAutoPos(void);
@@ -102,4 +102,16 @@ void DampMPos(float step);
 #define DIM 65
 #define UNUSE 66
 
+#define SSLF  53
+#define SSRT  54
+#define SSMLF 55
+#define SSMRT 56
+#define SSLLF 57
+#define SSLRT 58
+
+#define SSUP  61
+#define SSDN  62
+#define SSRD  63
+
+#define STSOK  64
 #endif

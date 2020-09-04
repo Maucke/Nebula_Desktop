@@ -51,7 +51,7 @@ extern const unsigned char gImage_weather_citylist_ic_34_windy_mtrl[];
 
 
 
-extern uint16_t color_now,color_half,color_min;
+extern uint16_t color_now,color_half,color_min,color_minest;
 extern const unsigned char Logo_asus[32768];
 extern const unsigned char Logo_msi[32768];
 extern const unsigned char Logo_amd[32768];
@@ -80,7 +80,7 @@ extern const unsigned char Icon_Humi[];
 extern const unsigned char Icon_Day[];
 extern const unsigned char Icon_Night[];
 extern const unsigned char Bmp_Green[];
-
+extern const unsigned char GeForce_19x23[];
 extern const unsigned char gImage_weather_ic_39_partlysunnywiththundershower_mtrl[];
 extern const unsigned char gImage_weather_citylist_ic_34_partlysunnywithshower_mtrl[];
 #define UT_RPM 0
@@ -219,6 +219,7 @@ extern "C" {
       void Display_bmp(int x,int y,int w,int h,const uint8_t *ch);
 			void Display_bbmp(int x,int y,int w,int h,const uint8_t *ch);
 			void Display_bbmp(int x,int y,int w,int h,const uint8_t *ch,uint16_t color);
+			void Display_hbmp(int x,int y,int w,int h,const u8 *ch,uint16_t color);
 			void Display_vifbmp(const uint8_t *ch);
       void Display_FadeinAll(const uint8_t *ch);
       void Display_FadeoutAll(void);
@@ -255,8 +256,9 @@ extern "C" {
 			void OLED_HF18x26(int x,int y,u8 Num,uint16_t color);
 			void OLED_SHF18x26(int x,int y,char *ch,uint16_t color);
 			void OLED_HF14x14(int x,int y,u8 Num,uint16_t color);
-			void OLED_HBMP(int x,int y,int w,int h,const u8 *ch,uint16_t color);
 			
+			void OLED_HFAny(int x,int y,int w,int h,u8 Num,const unsigned char *ch,uint16_t color);
+			void OLED_SHFAny(int x,int y,char *ch,int w,uint16_t color);
     private:  
 			void OLED_NF6x8(int x,int y,u8 Num,u8 Offset);
 			void OLED_F8x16(int x,int y,u8 Num);

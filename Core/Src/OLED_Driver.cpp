@@ -8,7 +8,7 @@ uint8_t color_byte[2],color_Damp_byte[2];
 uint8_t OLED_GRAM[256][128];
 uint16_t wheel;
 
-uint16_t color_now,color_half,color_min;
+uint16_t color_now,color_half,color_min,color_minest;
 
 #ifdef __cplusplus
 extern "C"  {
@@ -75,6 +75,10 @@ void OLED_Driver::Set_Color(uint16_t color)  {
 	green >>=1;
 	blue >>=1;
 	color_min = red<<11|green<<5|blue;
+	red >>=1;
+	green >>=1;
+	blue >>=1;
+	color_minest = red<<11|green<<5|blue;
 }
 
 uint16_t OLED_Driver::RandomColor(void){
@@ -245,6 +249,10 @@ void OLED_Driver::Calc_Color(void){
 	green >>=1;
 	blue >>=1;
 	color_min = red<<11|green<<5|blue;
+	red >>=1;
+	green >>=1;
+	blue >>=1;
+	color_minest = red<<11|green<<5|blue;
 	
 }
 
@@ -1297,7 +1305,7 @@ const unsigned char Clock_HF12x24[] = {
 };
 
 
-void OLED_Driver::OLED_HBMP(int x,int y,int w,int h,const u8 *ch,uint16_t color)
+void OLED_Driver::Display_hbmp(int x,int y,int w,int h,const u8 *ch,uint16_t color)
 {
 	u16 i,j;
 	u16 red,green,blue;
@@ -1308,9 +1316,9 @@ void OLED_Driver::OLED_HBMP(int x,int y,int w,int h,const u8 *ch,uint16_t color)
 	green = (color&0x7E0)>>5;
 	blue = color&0x1F;
 	for(j=0;j<h;j++)
-		for(i=0;i<w/2;i++)
+		for(i=0;i<(w+1)/2;i++)
 		{
-			Factor = (ch[j*w/2+i]&0xF0)>>4;
+			Factor = (ch[j*((w+1)/2)+i]&0xF0)>>4;
 			if(red>=15)
 				red1 = red-0xF+Factor;
 			else
@@ -1327,7 +1335,7 @@ void OLED_Driver::OLED_HBMP(int x,int y,int w,int h,const u8 *ch,uint16_t color)
 			if(Factor)
 				Draw_Pixel(x+i*2+0,y+j,red1<<11|(green1<<5)|(blue1));
 			
-			Factor = (ch[j*w/2+i]&0xF);
+			Factor = (ch[j*((w+1)/2)+i]&0xF);
 			if(red>=15)
 				red1 = red-0xF+Factor;
 			else
@@ -1345,7 +1353,70 @@ void OLED_Driver::OLED_HBMP(int x,int y,int w,int h,const u8 *ch,uint16_t color)
 				Draw_Pixel(x+i*2+1,y+j,red1<<11|(green1<<5)|(blue1));
 		}
 }	
-
+void OLED_Driver::OLED_HFAny(int x,int y,int w,int h,u8 Num,const unsigned char *ch,uint16_t color)
+{
+	u16 i,j;
+	u16 red,green,blue;
+	u16 red1,green1,blue1;
+	u16 Factor;
+//	color = 0xFFFF;
+	red = color>>11;
+	green = (color&0x7E0)>>5;
+	blue = color&0x1F;
+	for(j=0;j<h;j++)
+		for(i=0;i<(w+1)/2;i++)
+		{
+			Factor = (ch[Num*h*((w+1)/2)+j*((w+1)/2)+i]&0xF0)>>4;
+			if(red>=15)
+				red1 = red-0xF+Factor;
+			else
+				red1 = Factor;
+			if(green>=30)
+				green1=green-30+Factor*2;
+			else
+				green1 = Factor*2;
+			if(blue>=15)
+				blue1=blue-15+Factor;
+			else
+				blue1=Factor;
+			
+			if(Factor)
+				Draw_Pixel(x+i*2+0,y+j,red1<<11|(green1<<5)|(blue1));
+			
+			Factor = (ch[Num*h*((w+1)/2)+j*((w+1)/2)+i]&0xF);
+			if(red>=15)
+				red1 = red-0xF+Factor;
+			else
+				red1 = Factor;
+			if(green>=30)
+				green1=green-30+Factor*2;
+			else
+				green1 = Factor*2;
+			if(blue>=15)
+				blue1=blue-15+Factor;
+			else
+				blue1=Factor;
+			
+			if(Factor)
+				Draw_Pixel(x+i*2+1,y+j,red1<<11|(green1<<5)|(blue1));
+		}
+}	
+void OLED_Driver::OLED_SHFAny(int x,int y,char *ch,int w,uint16_t color)
+{
+	u8 c=0,j=0;
+	while(ch[j]!='\0')
+	{
+		c=ch[j]-'0';
+		switch(w)
+		{
+			case 10:OLED_HFAny(x,y,10,13,c,GeForce_10x13,color);break;
+			case 19:OLED_HFAny(x,y,19,23,c,GeForce_19x23,color);break;
+			case 25:OLED_HFAny(x,y,25,37,c,GeForce_25x37,color);break;
+		}
+		x+=w; 
+		j++;
+	}
+}
 
 void OLED_Driver::OLED_HF14x14(int x,int y,u8 Num,uint16_t color)
 {

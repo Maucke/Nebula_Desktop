@@ -40,6 +40,7 @@
 #include "stmflash.h"
 #include "string.h"
 #include "math.h"
+#include "sensorui.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -119,13 +120,17 @@ u8 WiFiOnline = False;
 
 void Mode_In(void)
 {
+	
+	SetCurrent(STSOK,0) ;
+	SetTarget(STSOK,0);
 	SetTarget(DIM,64);
 	switch(Current_Mode)
 	{
 		case MODE_DATE:TIME_Mode_In();break;
 		case MODE_DATE_1:TIME_1_Mode_In();break;
 		case MODE_NORMAL:NORMAL_Mode_In();break;
-		case MODE_GAME:NORMAL_Mode_In();break;
+//		case MODE_GAME:NORMAL_Mode_In();break;
+		case MODE_GAME:GAME_Mode_In();break;
 		case MODE_MUSIC:MUSIC_Mode_In();break;
 #if Dounsn == 1
 		case MODE_BILI:BILI_Mode_In();break;
@@ -140,13 +145,15 @@ void Mode_In(void)
 
 void Mode_Out(void)
 {
+	SetTarget(STSOK,15);
 	SetTarget(DIM,20);
 	switch(Current_Mode)
 	{
 		case MODE_DATE:TIME_Mode_Out();break;
 		case MODE_DATE_1:TIME_1_Mode_Out();break;
 		case MODE_NORMAL:NORMAL_Mode_Out();break;
-		case MODE_GAME:NORMAL_Mode_Out();break;
+//		case MODE_GAME:NORMAL_Mode_Out();break;
+		case MODE_GAME:GAME_Mode_Out();break;
 		case MODE_MUSIC:MUSIC_Mode_Out();break;
 #if Dounsn == 1
 		case MODE_BILI:BILI_Mode_Out();break;
@@ -167,7 +174,8 @@ void Mode_Run(void)
 		case MODE_DATE:TIME_Mode_Run();break;
 		case MODE_DATE_1:TIME_Mode_Run();break;
 		case MODE_NORMAL:NORMAL_Mode_Run();break;
-		case MODE_GAME:NORMAL_Mode_Run();break;
+//		case MODE_GAME:NORMAL_Mode_Run();break;
+//		case MODE_GAME:GAME_Mode_Run();break;
 //		case MODE_MUSIC:MUSIC_Mode_Run();break;
 #if Dounsn == 1
 		case MODE_BILI:BILI_Mode_Run();break;
@@ -187,7 +195,8 @@ void Mode_Display(void)
 		case MODE_DATE:TIME_Display();break;
 		case MODE_DATE_1:TIME_1_Display();break;
 		case MODE_NORMAL:NORMAL_Display();break;
-		case MODE_GAME:NORMAL_Display();break;
+//		case MODE_GAME:NORMAL_Display();break;
+		case MODE_GAME:GAME_Display();break;
 		case MODE_MUSIC:MUSIC_Display();break;
 #if Dounsn == 1
 		case MODE_BILI:BILI_Display();break;
@@ -220,7 +229,7 @@ void Display_Run(void)
 		else
 		{
 			Mode_Out();
-			if(NMatchcount<2)
+			if(pit[STSOK].match)
 			{
 				SleepCount = 0;
 				Current_Mode = Display_Mode;
@@ -229,11 +238,56 @@ void Display_Run(void)
 		}
 		oled.Display_SetDim(pit[DIM].current);
 		oled.Clear_Screen();
-		motion.OLED_AllMotion(Device_Cmd.commandmotion,Device_Cmd.commandspeed);
+		if(Current_Mode!=MODE_GAME)
+		{
+			motion.OLED_AllMotion(Device_Cmd.commandmotion,Device_Cmd.commandspeed);
+		}
 		Mode_Display();
 		oled.Refrash_Screen();
 	}
 	HAL_Delay(1);
+}
+
+void GAME_Display(void)
+{
+	static int i,roun=0;
+	static char tempstr[100];
+	roun++;
+	oled.Display_bbmp(21,46,86,43,GeForce_B_Back,color_min);
+	oled.Display_bbmp(6+5,105,23,13,shadowleft,color_min);
+	oled.Display_bbmp(99-5,105,23,13,shadowright,color_min);
+
+	motion.OLED_AllMotion(Device_Cmd.commandmotion,Device_Cmd.commandspeed);
+	oled.Display_hbmp(pit[SSLF].current,22,54,9,userleft,color_now);
+	oled.Display_hbmp(pit[SSRT].current,22,54,9,userright,color_now);
+	oled.Display_hbmp(10,pit[SSDN].current,108,21,userbottom,color_now);
+	
+	
+	oled.Display_hbmp(35,pit[SSDN].current+3,58,3,usermgndbar,0xFFFF);
+	oled.Display_hbmp(pit[SSMLF].current,47,21,37,usermleft,color_half);
+	oled.Display_hbmp(pit[SSMRT].current,47,21,37,usermright,color_half);
+	for(i=0;i<9;i++)
+			oled.Draw_Pixel(9+28+4+8+i*5,pit[SSUP].current+8,color_min);
+	
+	oled.Draw_Line(0,0,pit[SSRD].current,pit[SSRD].current,color_now);
+	oled.Draw_Line(127,0,127-pit[SSRD].current,pit[SSRD].current,color_now);
+	oled.Draw_Line(pit[SSRD].current,127-pit[SSRD].current,0,127,color_now);
+	oled.Draw_Line(127-pit[SSRD].current,127-pit[SSRD].current,127,127,color_now);
+	
+	oled.Display_hbmp(9-5+pit[SSRD].current,pit[SSRD].current,28,10,GeForce_LOAD,color_now);
+	oled.Display_hbmp(101+5-pit[SSRD].current,pit[SSRD].current,21,10,GeForce_SYS,color_now);
+	oled.Display_hbmp(27+1,33,74,10,GeForce_TEMP,color_now);
+	oled.Display_hbmp(48,88,33,13,GeForce_CENT,color_now);
+	oled.Draw_Line(20,96-2,pit[SSLLF].current,96-2,0xFFFF);
+	oled.Draw_Line(pit[SSLRT].current,96-2,108,96-2,0xFFFF);
+	oled.Draw_Line(27,33+10,27+73,33+10,color_min);
+//	sprintf(tempstr,"%02d",);
+	oled.OLED_SHFAny(38,48,Device_Str.cputemp,25,0xFFFF);
+	sprintf(tempstr,"%03d",Device_Msg.cpuload/10);
+	oled.OLED_SHFAny(29-8+pit[SSLF].current,15,tempstr,10,0xFFFF);
+	sprintf(tempstr,"%03d",Device_Msg.gputemp/10);
+	oled.OLED_SHFAny(69+1+8-pit[SSLF].current,15,tempstr,10,0xFFFF);
+//	oled.Refrash_Screen();
 }
 
 /* USER CODE END 0 */
@@ -327,6 +381,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+		
 		if(Current_Mode == MODE_OFFLINE||Current_Mode == MODE_SHOW)
 			OFFLINE_Mode();
 		else
@@ -780,17 +835,17 @@ void MENU_Display()
 	oled.Draw_Line(-1,127,pit[MENUL3SX].current,127,color_half);//选中小时
 	if(MenuLevel == 1)
 	{
-		oled.OLED_HBMP(20,pit[MENUL1Y].current,88,24,menutop,0xFFFF);
-		oled.OLED_HBMP(pit[MENUL1I1X].current,6+pit[MENUL1I1Y].current,80,20,menusettime,color_menu[0]);
-		oled.OLED_HBMP(pit[MENUL1I2X].current,6+pit[MENUL1I2Y].current,80,20,menusetaddr,color_menu[1]);
-		oled.OLED_HBMP(pit[MENUL1I3X].current,6+pit[MENUL1I3Y].current,80,20,menusetmotion,color_menu[2]);
-		oled.OLED_HBMP(pit[MENUL1I4X].current,6+pit[MENUL1I4Y].current,80,20,menusetcolor,color_menu[3]);
-		oled.OLED_HBMP(pit[MENUL1I5X].current,6+pit[MENUL1I5Y].current,80,20,menusetdisplay,color_menu[4]);
-		oled.OLED_HBMP(pit[MENUL1I6X].current,6+pit[MENUL1I6Y].current,80,20,menusetuid,color_menu[5]);
+		oled.Display_hbmp(20,pit[MENUL1Y].current,88,24,menutop,0xFFFF);
+		oled.Display_hbmp(pit[MENUL1I1X].current,6+pit[MENUL1I1Y].current,80,20,menusettime,color_menu[0]);
+		oled.Display_hbmp(pit[MENUL1I2X].current,6+pit[MENUL1I2Y].current,80,20,menusetaddr,color_menu[1]);
+		oled.Display_hbmp(pit[MENUL1I3X].current,6+pit[MENUL1I3Y].current,80,20,menusetmotion,color_menu[2]);
+		oled.Display_hbmp(pit[MENUL1I4X].current,6+pit[MENUL1I4Y].current,80,20,menusetcolor,color_menu[3]);
+		oled.Display_hbmp(pit[MENUL1I5X].current,6+pit[MENUL1I5Y].current,80,20,menusetdisplay,color_menu[4]);
+		oled.Display_hbmp(pit[MENUL1I6X].current,6+pit[MENUL1I6Y].current,80,20,menusetuid,color_menu[5]);
 	}
 	else if(MenuLevel == 2)
 	{
-		oled.OLED_HBMP(20,pit[MENUL1Y].current,88,24,menutop,0xFFFF);
+		oled.Display_hbmp(20,pit[MENUL1Y].current,88,24,menutop,0xFFFF);
 			
 		switch(Selectitem&0xF00)
 		{
@@ -803,13 +858,13 @@ void MENU_Display()
 		switch(Selectitem&0xF0)
 		{
 			case 0x10:
-				oled.OLED_HBMP(pit[MENUL1I1X].current,6+pit[MENUL1I1Y].current,80,20,menusettime,color_menu[0]);
+				oled.Display_hbmp(pit[MENUL1I1X].current,6+pit[MENUL1I1Y].current,80,20,menusettime,color_menu[0]);
 					
-				oled.OLED_HBMP(20+pit[MENUL2IX].current,40,80,14,autosynctime,color_setitem[0]);
+				oled.Display_hbmp(20+pit[MENUL2IX].current,40,80,14,autosynctime,color_setitem[0]);
 				if(set.autotimeset)
-					oled.OLED_HBMP(4+pit[MENUL2IX].current,40,16,15,iconok,color_setitem[0]);
+					oled.Display_hbmp(4+pit[MENUL2IX].current,40,16,15,iconok,color_setitem[0]);
 				else
-					oled.OLED_HBMP(4+pit[MENUL2IX].current,40,16,15,iconnotok,color_setitem[0]);
+					oled.Display_hbmp(4+pit[MENUL2IX].current,40,16,15,iconnotok,color_setitem[0]);
 				oled.OLED_SHF12x24(28+pit[MENUL2IX].current,60,set.hourc,color_setitem[1]);
 				oled.OLED_SHF12x24(28+24+pit[MENUL2IX].current,60,":",color_half);
 				oled.OLED_SHF12x24(28+36+pit[MENUL2IX].current,60,set.minc,color_setitem[2]);
@@ -817,60 +872,60 @@ void MENU_Display()
 					oled.Draw_Line(pit[MENUL2S1X].current,83,pit[MENUL2S2X].current,83,color_half);//选中小时
 			break;
 			case 0x20:
-				oled.OLED_HBMP(pit[MENUL1I2X].current,6+pit[MENUL1I2Y].current,80,20,menusetaddr,color_menu[1]);
+				oled.Display_hbmp(pit[MENUL1I2X].current,6+pit[MENUL1I2Y].current,80,20,menusetaddr,color_menu[1]);
 				oled.OLED_SHF12x24(20+pit[MENUL2IX].current,50,set.addr,color_now);
 				oled.Draw_Line(pit[MENUL2S1X].current,73,pit[MENUL2S2X].current,73,color_half);//
 				oled.Draw_Line(pit[MENUL2S1X].current,50,pit[MENUL2S2X].current,50,color_half);//
-				oled.OLED_HBMP(92-28-24+pit[MENUL2IX].current,74,52,14,iconaddres,color_half);
+				oled.Display_hbmp(92-28-24+pit[MENUL2IX].current,74,52,14,iconaddres,color_half);
 			break;
 			case 0x30:
-				oled.OLED_HBMP(pit[MENUL1I3X].current,6+pit[MENUL1I3Y].current,80,20,menusetmotion,color_menu[2]);
+				oled.Display_hbmp(pit[MENUL1I3X].current,6+pit[MENUL1I3Y].current,80,20,menusetmotion,color_menu[2]);
 			
 				if(Device_Cmd.commandmotion&0x8)
-					oled.OLED_HBMP(14+pit[MENUL2IX].current,40,16,15,iconok,color_setitem[0]);
+					oled.Display_hbmp(14+pit[MENUL2IX].current,40,16,15,iconok,color_setitem[0]);
 				else
-					oled.OLED_HBMP(14+pit[MENUL2IX].current,40,16,15,iconnotok,color_setitem[0]);
+					oled.Display_hbmp(14+pit[MENUL2IX].current,40,16,15,iconnotok,color_setitem[0]);
 					
 				if(Device_Cmd.commandmotion&0x4)
-					oled.OLED_HBMP(14+pit[MENUL2IX].current,40+22,16,15,iconok,color_setitem[1]);
+					oled.Display_hbmp(14+pit[MENUL2IX].current,40+22,16,15,iconok,color_setitem[1]);
 				else
-					oled.OLED_HBMP(14+pit[MENUL2IX].current,40+22,16,15,iconnotok,color_setitem[1]);
+					oled.Display_hbmp(14+pit[MENUL2IX].current,40+22,16,15,iconnotok,color_setitem[1]);
 				if(Device_Cmd.commandmotion&0x2)
-					oled.OLED_HBMP(14+pit[MENUL2IX].current,40+22*2,16,15,iconok,color_setitem[2]);
+					oled.Display_hbmp(14+pit[MENUL2IX].current,40+22*2,16,15,iconok,color_setitem[2]);
 				else
-					oled.OLED_HBMP(14+pit[MENUL2IX].current,40+22*2,16,15,iconnotok,color_setitem[2]);
+					oled.Display_hbmp(14+pit[MENUL2IX].current,40+22*2,16,15,iconnotok,color_setitem[2]);
 				if(Device_Cmd.commandmotion&0x1)
-					oled.OLED_HBMP(14+pit[MENUL2IX].current,40+22*3,16,15,iconok,color_setitem[3]);
+					oled.Display_hbmp(14+pit[MENUL2IX].current,40+22*3,16,15,iconok,color_setitem[3]);
 				else
-					oled.OLED_HBMP(14+pit[MENUL2IX].current,40+22*3,16,15,iconnotok,color_setitem[3]);
+					oled.Display_hbmp(14+pit[MENUL2IX].current,40+22*3,16,15,iconnotok,color_setitem[3]);
 			
 			
-				oled.OLED_HBMP(30+pit[MENUL2IX].current,40,54,14,iconmind,color_setitem[0]);
-				oled.OLED_HBMP(30+pit[MENUL2IX].current,40+22,54,14,iconstar,color_setitem[1]);
-				oled.OLED_HBMP(30+pit[MENUL2IX].current,40+22*2,54,14,iconsnow,color_setitem[2]);
-				oled.OLED_HBMP(30+pit[MENUL2IX].current,40+22*3,40,14,iconcircle,color_setitem[3]);
+				oled.Display_hbmp(30+pit[MENUL2IX].current,40,54,14,iconmind,color_setitem[0]);
+				oled.Display_hbmp(30+pit[MENUL2IX].current,40+22,54,14,iconstar,color_setitem[1]);
+				oled.Display_hbmp(30+pit[MENUL2IX].current,40+22*2,54,14,iconsnow,color_setitem[2]);
+				oled.Display_hbmp(30+pit[MENUL2IX].current,40+22*3,40,14,iconcircle,color_setitem[3]);
 			break;
 			case 0x40:
-				oled.OLED_HBMP(pit[MENUL1I4X].current,6+pit[MENUL1I4Y].current,80,20,menusetcolor,color_menu[3]);
+				oled.Display_hbmp(pit[MENUL1I4X].current,6+pit[MENUL1I4Y].current,80,20,menusetcolor,color_menu[3]);
 				switch(Device_Cmd.commandrgbmode)
 				{
 					case 2:
-						oled.OLED_HBMP(4+pit[MENUL2IX].current,40,16,15,iconradok,color_setitem[0]);
-						oled.OLED_HBMP(4+pit[MENUL2IX].current,40+20,16,15,iconradnok,color_setitem[1]);
-						oled.OLED_HBMP(4+pit[MENUL2IX].current,40+20*2,16,15,iconradnok,color_setitem[2]);break;
+						oled.Display_hbmp(4+pit[MENUL2IX].current,40,16,15,iconradok,color_setitem[0]);
+						oled.Display_hbmp(4+pit[MENUL2IX].current,40+20,16,15,iconradnok,color_setitem[1]);
+						oled.Display_hbmp(4+pit[MENUL2IX].current,40+20*2,16,15,iconradnok,color_setitem[2]);break;
 					case 1:
-						oled.OLED_HBMP(4+pit[MENUL2IX].current,40,16,15,iconradnok,color_setitem[0]);
-						oled.OLED_HBMP(4+pit[MENUL2IX].current,40+20,16,15,iconradok,color_setitem[1]);
-						oled.OLED_HBMP(4+pit[MENUL2IX].current,40+20*2,16,15,iconradnok,color_setitem[2]);break;
+						oled.Display_hbmp(4+pit[MENUL2IX].current,40,16,15,iconradnok,color_setitem[0]);
+						oled.Display_hbmp(4+pit[MENUL2IX].current,40+20,16,15,iconradok,color_setitem[1]);
+						oled.Display_hbmp(4+pit[MENUL2IX].current,40+20*2,16,15,iconradnok,color_setitem[2]);break;
 					case 3:
-						oled.OLED_HBMP(4+pit[MENUL2IX].current,40,16,15,iconradnok,color_setitem[0]);
-						oled.OLED_HBMP(4+pit[MENUL2IX].current,40+20,16,15,iconradnok,color_setitem[1]);
-						oled.OLED_HBMP(4+pit[MENUL2IX].current,40+20*2,16,15,iconradok,color_setitem[2]);break;
+						oled.Display_hbmp(4+pit[MENUL2IX].current,40,16,15,iconradnok,color_setitem[0]);
+						oled.Display_hbmp(4+pit[MENUL2IX].current,40+20,16,15,iconradnok,color_setitem[1]);
+						oled.Display_hbmp(4+pit[MENUL2IX].current,40+20*2,16,15,iconradok,color_setitem[2]);break;
 				}
 				
-				oled.OLED_HBMP(20+pit[MENUL2IX].current,40,80,14,iconautocolor1,color_setitem[0]);
-				oled.OLED_HBMP(20+pit[MENUL2IX].current,40+20,80,14,iconautocolor2,color_setitem[1]);
-				oled.OLED_HBMP(20+pit[MENUL2IX].current,40+20*2,80,14,iconmanualcolor,color_setitem[2]);
+				oled.Display_hbmp(20+pit[MENUL2IX].current,40,80,14,iconautocolor1,color_setitem[0]);
+				oled.Display_hbmp(20+pit[MENUL2IX].current,40+20,80,14,iconautocolor2,color_setitem[1]);
+				oled.Display_hbmp(20+pit[MENUL2IX].current,40+20*2,80,14,iconmanualcolor,color_setitem[2]);
 				
 				if(Device_Cmd.commandrgbmode==3)
 				{
@@ -880,29 +935,29 @@ void MENU_Display()
 				
 				break;
 			case 0x50:
-				oled.OLED_HBMP(pit[MENUL1I5X].current,6+pit[MENUL1I5Y].current,80,20,menusetdisplay,color_menu[4]);
+				oled.Display_hbmp(pit[MENUL1I5X].current,6+pit[MENUL1I5Y].current,80,20,menusetdisplay,color_menu[4]);
 				
-				oled.OLED_HBMP(20+pit[MENUL2IX].current,40,56,14,iconautoswdis,color_setitem[0]);
+				oled.Display_hbmp(20+pit[MENUL2IX].current,40,56,14,iconautoswdis,color_setitem[0]);
 				if(set.autoswdis)
-					oled.OLED_HBMP(4+pit[MENUL2IX].current,40,16,15,iconok,color_setitem[0]);
+					oled.Display_hbmp(4+pit[MENUL2IX].current,40,16,15,iconok,color_setitem[0]);
 				else
-					oled.OLED_HBMP(4+pit[MENUL2IX].current,40,16,15,iconnotok,color_setitem[0]);
+					oled.Display_hbmp(4+pit[MENUL2IX].current,40,16,15,iconnotok,color_setitem[0]);
 				oled.OLED_SHF12x24(28+pit[MENUL2IX].current,60,set.autoswtimec,color_setitem[1]);
-				oled.OLED_HBMP(20+36+pit[MENUL2IX].current,66,14,14,hzsec,color_setitem[1]);
+				oled.Display_hbmp(20+36+pit[MENUL2IX].current,66,14,14,hzsec,color_setitem[1]);
 				
-				oled.OLED_HBMP(20+pit[MENUL2IX].current,90,68,14,iconfansdis,color_setitem[2]);
+				oled.Display_hbmp(20+pit[MENUL2IX].current,90,68,14,iconfansdis,color_setitem[2]);
 				if(set.fanswdis)
-					oled.OLED_HBMP(4+pit[MENUL2IX].current,90,16,15,iconok,color_setitem[2]);
+					oled.Display_hbmp(4+pit[MENUL2IX].current,90,16,15,iconok,color_setitem[2]);
 				else
-					oled.OLED_HBMP(4+pit[MENUL2IX].current,90,16,15,iconnotok,color_setitem[2]);
+					oled.Display_hbmp(4+pit[MENUL2IX].current,90,16,15,iconnotok,color_setitem[2]);
 				break;
 			case 0x60:
-				oled.OLED_HBMP(pit[MENUL1I6X].current,6+pit[MENUL1I6Y].current,80,20,menusetuid,color_menu[5]);
+				oled.Display_hbmp(pit[MENUL1I6X].current,6+pit[MENUL1I6Y].current,80,20,menusetuid,color_menu[5]);
 			
 				oled.OLED_SHF12x24(pit[MENUL2IX].current,50,set.uid,color_now);
 				oled.Draw_Line(pit[MENUL2S1X].current,73,pit[MENUL2S2X].current,73,color_half);//
 				oled.Draw_Line(pit[MENUL2S1X].current,50,pit[MENUL2S2X].current,50,color_half);//
-				oled.OLED_HBMP(92+pit[MENUL2IX].current,74,24,14,iconuid,color_half);
+				oled.Display_hbmp(92+pit[MENUL2IX].current,74,24,14,iconuid,color_half);
 				break;
 		}	
 	}
@@ -1099,16 +1154,53 @@ void NORMAL_Mode_Run(void)
 	}
 }
 
+void GAME_Mode_In(void)
+{
+	SetTarget(SSLF,8) ;
+	SetTarget(SSRT,66) ;
+	SetTarget(SSMLF,8);
+	SetTarget(SSMRT,98);
+	SetTarget(SSLLF,40);
+	SetTarget(SSLRT,88);
+	SetTarget(SSUP,0);
+	SetTarget(SSDN,112-7);
+	SetTarget(SSRD,5);
+	
+	SetCurrent(SSLF,8-80) ;
+	SetCurrent(SSRT,66+80) ;
+	SetCurrent(SSMLF,8-120);
+	SetCurrent(SSMRT,98+120);
+	SetCurrent(SSLLF,40-20);
+	SetCurrent(SSLRT,88+20);
+	SetCurrent(SSUP,0-20);
+	SetCurrent(SSDN,112-7+40);
+	SetCurrent(SSRD,5-5);
+}
+
+void GAME_Mode_Out(void)
+{
+	SetTarget(SSLF,8-80) ;
+	SetTarget(SSRT,66+80) ;
+	SetTarget(SSMLF,8-88);
+	SetTarget(SSMRT,98+88);
+	SetTarget(SSLLF,40-20);
+	SetTarget(SSLRT,88+20);
+	SetTarget(SSUP,0-20);
+	SetTarget(SSDN,112-7+40);
+	SetTarget(SSRD,5-5);
+}
 
 void NORMAL_Mode_In(void)
 {
 	SetCurrent(POSNBAR,148) ;
 	SetCurrent(POSNBAT,170) ;
+	SetCurrent(POSNRCD,4) ;
 	SetTarget(POSNRCT,25);
 	SetTarget(POSNTOP,0);
 	SetTarget(POSNBAR,103);
 	SetTarget(POSNBAT,115);
 	SetTarget(DAMPTYP,0);
+	
 }
 
 void NORMAL_Mode_Out(void)
@@ -1808,13 +1900,13 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	}
 	if(htim->Instance == htim7.Instance)
 	{
-		if(Current_Mode == MODE_GAME)
+		if(Device_Cmd.commandgametype!=0xF)
 		{
 			DataDisType = Device_Cmd.commandgametype;
 			pit[DAMPTYP].current = 30;
 			TimeRun = 0;
 		}
-		else if(Current_Mode == MODE_NORMAL)
+		else
 		{
 			if(TimeRun++>40)
 			{
@@ -1907,7 +1999,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 				Flag_Sleep = True;
 			SleepCount = 0;
 		}
-		if(SystemActive && NMatchcount<3)
+		if(SystemActive && pit[STSOK].match)
 		{
 			if(SaveFlag)
 			{

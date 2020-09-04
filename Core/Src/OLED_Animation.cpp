@@ -445,7 +445,7 @@ void OLED_Animation::Motion_Planet(void){
 		mtplanet[i].x = OCX+double(mtplanet[i].orb*cos(mtplanet[i].angle*PI/180));
 		mtplanet[i].y = OCY+double(mtplanet[i].orb*sin(mtplanet[i].angle*PI/180));
 		
-		oled.Draw_Circle(OCX,OCY,mtplanet[i].orb,3);
+//		oled.Draw_Circle(OCX,OCY,mtplanet[i].orb,3);
 		
 	}
 	
