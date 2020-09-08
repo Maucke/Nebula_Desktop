@@ -517,6 +517,12 @@ void AnalysisComputermsg(uint8_t *Buf)
 				break;
 			case Uart_Second:
 				Device_Msg.uartsecond = MAKEWORD(Buf[6],Buf[5]);
+				if(set.autotimeset)
+				{
+					own_sec = Device_Msg.uartsecond;
+					own_min = Device_Msg.uartminute;
+					own_hour = Device_Msg.uarthour;
+				}
 				break;
 			case End_Frame_ADDR:
 				if(MAKEWORD(Buf[6],Buf[5]) == 0x5A5A)
@@ -524,14 +530,6 @@ void AnalysisComputermsg(uint8_t *Buf)
 					ConvertData();		
 					Uart_Overflow1_Flag = True;
 					
-					
-					if(set.autotimeset&&WiFi_Msg.year!=0)
-					if(Timefix++ == 1||Timefix == 5)
-					{
-						own_sec = Device_Msg.uartsecond;
-						own_min = Device_Msg.uartminute;
-						own_hour = Device_Msg.uarthour;
-					}
 					CptOnline = 2;
 //					if(Device_Cmd.commandmode == 1) 
 //						Judge_Mode();
@@ -1381,8 +1379,7 @@ void AnalysisWiFiInter(uint8_t *Buf)
 			case ESP_Hour:WiFi_Msg.hour = MAKEWORD(Buf[6],Buf[5]);break;
 			case ESP_Minute:WiFi_Msg.minute = MAKEWORD(Buf[6],Buf[5]);break;
 			case ESP_Second:WiFi_Msg.second = MAKEWORD(Buf[6],Buf[5]);
-				if(set.autotimeset&&WiFi_Msg.year!=0)
-//				if(Timefix++ == 1||Timefix == 5)
+				if(set.autotimeset&&CptOnline == 0)
 				{
 					own_sec = WiFi_Msg.second;
 					own_min = WiFi_Msg.minute;

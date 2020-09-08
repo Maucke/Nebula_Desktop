@@ -161,6 +161,7 @@ extern u8 WiFiOnline;
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
 
+void OFFLINE_Mode_In_Cust(const u8 *ch,u8 time);//time=10
 void SLEEP_Display(void);
 
 void OFFLINE_Mode_In(void);

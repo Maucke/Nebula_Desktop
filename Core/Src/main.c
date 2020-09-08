@@ -348,7 +348,7 @@ int main(void)
 	Recvcmd();
 #if Dounsn == 1
 	InitWifi();
-	OFFLINE_Mode_In();
+	OFFLINE_Mode_In_Cust(Logo_nebula,10);
 #else
 	if(Display_Mode != MODE_OFFLINE)
 		OFFLINE_Mode();
@@ -452,18 +452,18 @@ void WAITWIFI_Mode(void)
 	{
 		if(WiFi_Msg.mode == 2)
 		{
-			oled.Display_FadeoutAll();
-			oled.Display_FadeinAll(Logo_wifioffline);
-			while(WiFi_Msg.mode == 2)
+			OFFLINE_Mode_Out();
+			OFFLINE_Mode_In_Cust(Logo_wifioffline,10);
+			while(WiFi_Msg.mode == 2&&CptOnline == 0)
 			{
 				HAL_Delay(5);
 			}
 		}
 		if(WiFi_Msg.mode == 3)
 		{
-			oled.Display_FadeoutAll();
-			oled.Display_FadeinAll(Logo_wificonfig);
-			while(WiFi_Msg.mode == 3)
+			OFFLINE_Mode_Out();
+			OFFLINE_Mode_In_Cust(Logo_wificonfig,10);
+			while(WiFi_Msg.mode == 3&&CptOnline == 0)
 			{
 				HAL_Delay(5);
 			}
@@ -471,8 +471,9 @@ void WAITWIFI_Mode(void)
 	}
 	else
 	{
-		oled.Display_FadeinAll(Logo_wifioffline);
-		while(!WifiActive)
+		OFFLINE_Mode_Out();
+		OFFLINE_Mode_In_Cust(Logo_wifioffline,10);
+		while(!WifiActive&&CptOnline == 0)
 		{
 			HAL_Delay(5);
 		}
@@ -481,13 +482,7 @@ void WAITWIFI_Mode(void)
 	UsartPrint(&huart3,ESP_Set_Addr,set.addr);
 	HAL_Delay(10);
 	UsartPrintuid(&huart3,ESP_Set_Uid,set.uid);
-	if(set.autotimeset&&WiFi_Msg.year!=0)
-	{
-		own_sec = WiFi_Msg.second;
-		own_min = WiFi_Msg.minute;
-		own_hour = WiFi_Msg.hour;
-	}
-	oled.Display_FadeoutAll();
+	OFFLINE_Mode_Out();
 	DisSwRun = 0;
 }
 
@@ -549,6 +544,21 @@ void BILI_Display(void)
 	oled.OLED_SHF12x24(pit[PBNUM].current,11+8,WiFi_Msg.bilifans,color_now);
 	if(cont_str(WiFi_Msg.bilifans)>1)
 		oled.Draw_Line(pit[PBLINEL].current,36+8,pit[PBLINER].current,36+8,color_half);
+}
+
+void OFFLINE_Mode_In_Cust(const u8 *ch,u8 time)//time=10
+{
+	int i;
+	oled.Display_SetDim(0);
+	oled.Clear_Screen();
+	
+	oled.Display_bmp(ch);
+	oled.Refrash_Screen();
+	for(i=0;i<65;i++)
+	{
+		oled.Display_SetDim(i);
+		HAL_Delay(time);
+	}
 }
 
 void OFFLINE_Mode_In(void)
@@ -635,12 +645,6 @@ void OFFLINE_Mode(void)
 		UsartPrintuid(&huart1,ESP_Set_Uid,set.uid);
 		UsartPrintuid(&huart3,ESP_Set_Uid,set.uid);
 #endif
-	}
-	if(set.autotimeset&&WiFi_Msg.year!=0)
-	{
-//		own_sec = Device_Msg.uartsecond;
-//		own_min = Device_Msg.uartminute;
-//		own_hour = Device_Msg.uarthour;
 	}
 	HAL_Delay(1000);
 	OFFLINE_Mode_Out(); 
