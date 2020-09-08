@@ -344,18 +344,19 @@ int main(void)
   oled.Device_Init();
 	UsartCommand(&huart1,0xA002,3);//ªÒ»°√¸¡Ó
 	InitData();
-#if Dounsn == 1
-	InitWifi();
-#endif
 	motion.OLED_AllMotion_Init();
 	Recvcmd();
-	
+#if Dounsn == 1
+	InitWifi();
+	OFFLINE_Mode_In();
+#else
 	if(Display_Mode != MODE_OFFLINE)
 		OFFLINE_Mode();
 	else
 		printf("%s is online\r\n",Device_Name);
+#endif
 #if Dounsn == 1
-//	WAITWIFI_Mode();
+	WAITWIFI_Mode();
 	
 	SetCurrent(PWPTDN,128);
 	SetCurrent(PWPTRTICON,40);
@@ -370,6 +371,9 @@ int main(void)
 	SetTarget(PWPTLF,-80) ;
 	SetTarget(PWPTRT,140);
 	SetTarget(PWPTLINE,41);
+	Display_Mode = DATA_THEME;
+	Current_Mode = DATA_THEME;
+	Mode_In();
 #endif
 	
   /* USER CODE END 2 */
@@ -444,24 +448,48 @@ int cont_str_1(char *s)
 }
 void WAITWIFI_Mode(void)
 {
-	oled.Display_FadeinAll(Logo_wifioffline);
-	while(WifiActive == False)
+	if(WiFi_Msg.mode != 0)
 	{
-		HAL_Delay(5);
+		if(WiFi_Msg.mode == 2)
+		{
+			oled.Display_FadeoutAll();
+			oled.Display_FadeinAll(Logo_wifioffline);
+			while(WiFi_Msg.mode == 2)
+			{
+				HAL_Delay(5);
+			}
+		}
+		if(WiFi_Msg.mode == 3)
+		{
+			oled.Display_FadeoutAll();
+			oled.Display_FadeinAll(Logo_wificonfig);
+			while(WiFi_Msg.mode == 3)
+			{
+				HAL_Delay(5);
+			}
+		}
 	}
+	else
+	{
+		oled.Display_FadeinAll(Logo_wifioffline);
+		while(!WifiActive)
+		{
+			HAL_Delay(5);
+		}
+	}
+	
 	UsartPrint(&huart3,ESP_Set_Addr,set.addr);
 	HAL_Delay(10);
 	UsartPrintuid(&huart3,ESP_Set_Uid,set.uid);
-	if(set.autotimeset)
+	if(set.autotimeset&&WiFi_Msg.year!=0)
 	{
 		own_sec = WiFi_Msg.second;
 		own_min = WiFi_Msg.minute;
 		own_hour = WiFi_Msg.hour;
 	}
 	oled.Display_FadeoutAll();
+	DisSwRun = 0;
 }
-
-
 
 void BILI_Mode_In(void)
 {
@@ -608,7 +636,7 @@ void OFFLINE_Mode(void)
 		UsartPrintuid(&huart3,ESP_Set_Uid,set.uid);
 #endif
 	}
-	if(set.autotimeset)
+	if(set.autotimeset&&WiFi_Msg.year!=0)
 	{
 //		own_sec = Device_Msg.uartsecond;
 //		own_min = Device_Msg.uartminute;

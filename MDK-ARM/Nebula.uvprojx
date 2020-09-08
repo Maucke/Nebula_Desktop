@@ -422,6 +422,11 @@
           <GroupName>Application/User/Core</GroupName>
           <Files>
             <File>
+              <FileName>main.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Core/Src/main.c</FilePath>
+            </File>
+            <File>
               <FileName>motion.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Core\Src\motion.c</FilePath>
@@ -430,11 +435,6 @@
               <FileName>stmflash.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Core\Src\stmflash.c</FilePath>
-            </File>
-            <File>
-              <FileName>main.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../Core/Src/main.c</FilePath>
             </File>
             <File>
               <FileName>gpio.c</FileName>

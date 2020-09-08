@@ -317,6 +317,7 @@ typedef struct
 	
 	u16 bilimsg;
 	char bilifans[10];
+	u16 mode;
 }WIFI_MSG;
 
 extern u8 SaveFlag;

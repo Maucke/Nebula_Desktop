@@ -428,7 +428,7 @@ uint8_t Uart_Overflow1_Flag = False;
 uint8_t Uart_Recv3_Buf[Uart_Max_Length] = {0};
 uint16_t Uart_Recv3_Length = 0;
 uint8_t Uart_Overflow3_Flag = False;
-u8 WifiActive = True;
+u8 WifiActive = False;
 char Device_Name[20] = "Nebula\0\0\0\0\0\0";
 
 u8 ReponseID[40]={0xFF,0x55,'O','K'};
@@ -525,7 +525,7 @@ void AnalysisComputermsg(uint8_t *Buf)
 					Uart_Overflow1_Flag = True;
 					
 					
-					if(set.autotimeset)
+					if(set.autotimeset&&WiFi_Msg.year!=0)
 					if(Timefix++ == 1||Timefix == 5)
 					{
 						own_sec = Device_Msg.uartsecond;
@@ -983,8 +983,12 @@ void AnalysisWiFiString(uint8_t *Buf)
 //				case ESP_Bili_Fow:sprintf(WiFi_Msg.bilifans,"%d",MAKEWORD(Buf[6],Buf[5]));printf("fans:%d",WiFi_Msg.bilifans);break;
 		case ESP_Bili_Fow:memset(&WiFi_Msg.bilifans,0,sizeof(WiFi_Msg.bilifans));for(i=0;i<Buf[4];i++) WiFi_Msg.bilifans[i] = Buf[i + 5];
 			break;
-//		case ESP_Set_Addr:memset(&Address,0,sizeof(Address));for(i=0;i<Buf[4];i++) Address[i] = Buf[i + 5];
-//			break;
+			
+		case ESP_Set_Addr:memset(&set.addr,0,sizeof(set.addr));for(i=0;i<Buf[4];i++) set.addr[i] = Buf[i + 5];SaveFlag = True;
+			break;
+			
+		case ESP_Set_Uid:memset(&set.uid,0,sizeof(set.uid));for(i=0;i<Buf[4];i++) set.uid[i] = Buf[i + 5];SaveFlag = True;
+			break;
 		}
 	}
 }
@@ -1352,6 +1356,7 @@ void AnalysisKey(uint8_t *Buf)
 }
 
 
+#define ESP_SCREEN 0x8014
 void AnalysisWiFiInter(uint8_t *Buf)
 {
 	if(Buf[0] == 0xFF &&Buf[1] == 0x55)
@@ -1376,7 +1381,7 @@ void AnalysisWiFiInter(uint8_t *Buf)
 			case ESP_Hour:WiFi_Msg.hour = MAKEWORD(Buf[6],Buf[5]);break;
 			case ESP_Minute:WiFi_Msg.minute = MAKEWORD(Buf[6],Buf[5]);break;
 			case ESP_Second:WiFi_Msg.second = MAKEWORD(Buf[6],Buf[5]);
-				if(set.autotimeset)
+				if(set.autotimeset&&WiFi_Msg.year!=0)
 //				if(Timefix++ == 1||Timefix == 5)
 				{
 					own_sec = WiFi_Msg.second;
@@ -1389,6 +1394,8 @@ void AnalysisWiFiInter(uint8_t *Buf)
 			case ESP_Bili_Msg:WiFi_Msg.bilimsg = MAKEWORD(Buf[6],Buf[5]);Uart_Overflow3_Flag = 1-Uart_Overflow3_Flag;WifiActive = True;
 						if(Display_Mode == MODE_OFFLINE)
 							Display_Mode = DATA_THEME;break;
+//				case ESP_Bili_Fow:sprintf(WiFi_Msg.bilifans,"%d",MAKEWORD(Buf[6],Buf[5]));printf("fans:%d",WiFi_Msg.bilifans);break;
+			case ESP_SCREEN: WiFi_Msg.mode= MAKEWORD(Buf[6],Buf[5]);break;
 			}
 		}
 	}

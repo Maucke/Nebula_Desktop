@@ -267,8 +267,8 @@ void Error_Handler(void);
 #define MODE_DATE_1    	  		0x0C
 #define MODE_MENU    	  		0x0D
 
-#define Nebula True
-#define Dounsn False
+#define Nebula False
+#define Dounsn True
 extern u16 Selectitem;
 extern u16 MenuLevel;
 extern u16 DATA_THEME;

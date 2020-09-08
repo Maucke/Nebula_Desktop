@@ -61,6 +61,7 @@ extern const unsigned char Logo_razer[32768];
 extern const unsigned char Logo_custorm[32768];
 extern const unsigned char Logo_bilibili[32768];
 extern const unsigned char Logo_wifioffline[32768];
+extern const unsigned char Logo_wificonfig[32768];
 extern const unsigned char Logo_nebula[32768];
 extern const unsigned char BMP_Background[32768];
 //extern const unsigned char gImage_test[];
